@@ -18,6 +18,12 @@ These methods can be used to measure the amount of information shared between tw
 - [KDE] "Estimation of Mutual Information Using Kernel Density Estimators", Moon, Young-Il & Rajagopalan, Balaji & Lall, Upmanu - https://www.researchgate.net/publication/13324976_Estimation_of_Mutual_Information_Using_Kernel_Density_Estimators
 
 
+# Fix
+
+Need to fix the ranges in DB estimations. When N and nRealizations increases, the linspace range becomes wider, which deteriorates the Pxy estimation.
+Aminmax should be used in a batched fashion => Having one linspace for each batch.
+
+
 # Install library
 
 
@@ -142,7 +148,7 @@ axes[2].imshow(binsMiDiscrete.computePxy(x.view(BC, HW), y.view(BC, HW))[0])
 
 
     
-![png](figs/README_11_1.png)
+![png](figs/README_12_1.png)
     
 
 
@@ -552,7 +558,7 @@ for i, ax in enumerate(axis):
 
 
     
-![png](figs/README_19_0.png)
+![png](figs/README_20_0.png)
     
 
 
@@ -580,7 +586,7 @@ stats.groupby("r").agg(
 
 
     
-![png](figs/README_21_1.png)
+![png](figs/README_22_1.png)
     
 
 
@@ -612,7 +618,7 @@ stats.where((stats["gt"] > 0) & (stats["n"] == stats["n"].max())).assign(
 
 
     
-![png](figs/README_23_1.png)
+![png](figs/README_24_1.png)
     
 
 
@@ -639,7 +645,7 @@ stats.groupby("n").agg(
 
 
     
-![png](figs/README_25_1.png)
+![png](figs/README_26_1.png)
     
 
 
