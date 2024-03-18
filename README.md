@@ -48,11 +48,6 @@ pip install matplotlib
     Requirement already satisfied: python-dateutil>=2.7 in ./.venv/lib/python3.10/site-packages (from matplotlib) (2.9.0.post0)
     Requirement already satisfied: six>=1.5 in ./.venv/lib/python3.10/site-packages (from python-dateutil>=2.7->matplotlib) (1.16.0)
 
-
-
-    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.2.1[0m[39;49m -> [0m[32;49m24.0[0m
-    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49mpip install --upgrade pip[0m
-
 ```python
 import torch, math
 from torch.distributions.multivariate_normal import MultivariateNormal
@@ -119,9 +114,7 @@ axes[1].imshow(binsMiSoft.computePxy(x.view(BC, HW), y.view(BC, HW))[0])
 axes[2].imshow(binsMiDiscrete.computePxy(x.view(BC, HW), y.view(BC, HW))[0])
 ```
 
-    <matplotlib.image.AxesImage at 0x7f8f54016860>
-
-![png](README_files/README_11_1.png)
+![png](figs/README_11_1.png)
 
 # Compute Mutual Information for each method
 
@@ -155,11 +148,6 @@ pip install tqdm pandas
     Requirement already satisfied: pytz>=2020.1 in ./.venv/lib/python3.10/site-packages (from pandas) (2024.1)
     Requirement already satisfied: tzdata>=2022.7 in ./.venv/lib/python3.10/site-packages (from pandas) (2024.1)
     Requirement already satisfied: six>=1.5 in ./.venv/lib/python3.10/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
-
-
-
-    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.2.1[0m[39;49m -> [0m[32;49m24.0[0m
-    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49mpip install --upgrade pip[0m
 
 ```python
 import time
@@ -508,7 +496,7 @@ for i, ax in enumerate(axis):
     ax.set_ylabel(plotsMetadata[i]["y"].split(":")[0] + " - Estimated MI")
 ```
 
-![png](README_files/README_19_0.png)
+![png](figs/README_19_0.png)
 
 # Plot method dependency with the correlation coefficient
 
@@ -525,7 +513,7 @@ stats.groupby("r").agg(
 
     <Axes: xlabel='r'>
 
-![png](README_files/README_21_1.png)
+![png](figs/README_21_1.png)
 
 # Show method durations
 
@@ -541,4 +529,4 @@ stats.groupby("n").agg(
 
     <Axes: xlabel='n'>
 
-![png](README_files/README_23_1.png)
+![png](figs/README_23_1.png)
