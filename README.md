@@ -21,7 +21,7 @@ These methods can be used to measure the amount of information shared between tw
 # Fix
 
 Need to fix the ranges in DB estimations. When N and nRealizations increases, the linspace range becomes wider, which deteriorates the Pxy estimation.
-Aminmax should be used in a batched fashion => Having one linspace for each batch.
+Aminmax should be used in a batched fashion => Having one linspace for each batch and we will use (q,1-q) percentiles range
 
 
 # Install library
