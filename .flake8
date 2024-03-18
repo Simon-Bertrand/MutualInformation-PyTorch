@@ -1,0 +1,5 @@
+[flake8]
+ignore = E211, E999, F401, F821, W503,E203,E741
+max-line-length = 100
+extend-ignore = E203
+exclude = .venv, build
