@@ -8,6 +8,7 @@ The torch_mi library provides implementations of three different methods for cal
 
 These methods can be used to measure the amount of information shared between two variables in a dataset
 
+
 # References :
 
 - [KNN] "Estimating Mutual Information", Alexander Kraskov, Harald Stoegbauer, Peter Grassberger - https://arxiv.org/abs/cond-mat/0305641
@@ -16,7 +17,10 @@ These methods can be used to measure the amount of information shared between tw
 
 - [KDE] "Estimation of Mutual Information Using Kernel Density Estimators", Moon, Young-Il & Rajagopalan, Balaji & Lall, Upmanu - https://www.researchgate.net/publication/13324976_Estimation_of_Mutual_Information_Using_Kernel_Density_Estimators
 
+
 # Install library
+
+
 
 ```bash
 %%bash
@@ -25,11 +29,15 @@ pip install https://github.com/Simon-Bertrand/MutualInformation-PyTorch/archive/
 
 # Import library
 
+
+
 ```python
 import torch_mi
 ```
 
 # Generate some data and define some utils functions
+
+
 
 ```bash
 %%bash
@@ -47,6 +55,13 @@ pip install matplotlib
     Requirement already satisfied: pyparsing>=2.3.1 in ./.venv/lib/python3.10/site-packages (from matplotlib) (3.1.2)
     Requirement already satisfied: python-dateutil>=2.7 in ./.venv/lib/python3.10/site-packages (from matplotlib) (2.9.0.post0)
     Requirement already satisfied: six>=1.5 in ./.venv/lib/python3.10/site-packages (from python-dateutil>=2.7->matplotlib) (1.16.0)
+
+
+    
+    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.2.1[0m[39;49m -> [0m[32;49m24.0[0m
+    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49mpip install --upgrade pip[0m
+
+
 
 ```python
 import torch, math
@@ -79,6 +94,7 @@ def getMultivariateNormal(covMat, meanX, meanY):
     return MultivariateNormal(torch.Tensor([meanX, meanY]), covMat)
 ```
 
+
 ```python
 # Define parameters
 nNeighbours = 3
@@ -105,7 +121,10 @@ BC, HW = x.size(0) * x.size(1), x.size(2) * x.size(3)
 
     Ground truth MI: 0.14384103622589045
 
+
 # Plot density based joint distribution
+
+
 
 ```python
 fig, axes = plt.subplots(1, 3, figsize=(12, 5))
@@ -114,9 +133,22 @@ axes[1].imshow(binsMiSoft.computePxy(x.view(BC, HW), y.view(BC, HW))[0])
 axes[2].imshow(binsMiDiscrete.computePxy(x.view(BC, HW), y.view(BC, HW))[0])
 ```
 
+
+
+
+    <matplotlib.image.AxesImage at 0x7fdc9cc9ddb0>
+
+
+
+
+    
 ![png](figs/README_11_1.png)
+    
+
 
 # Compute Mutual Information for each method
+
+
 
 ```python
 dict(
@@ -128,13 +160,20 @@ dict(
 )
 ```
 
-    {'binsMiSoft': 0.2378513067960739,
-     'binsMiDiscrete': 0.24249428510665894,
-     'kdeMi': 0.10346297174692154,
-     'knnMi': 0.14206981658935547,
+
+
+
+    {'binsMiSoft': 0.22345711290836334,
+     'binsMiDiscrete': 0.23232725262641907,
+     'kdeMi': 0.10040728747844696,
+     'knnMi': 0.10853719711303711,
      'gt': 0.14384103622589045}
 
+
+
 # Compute some stats
+
+
 
 ```bash
 %%bash
@@ -148,6 +187,13 @@ pip install tqdm pandas
     Requirement already satisfied: pytz>=2020.1 in ./.venv/lib/python3.10/site-packages (from pandas) (2024.1)
     Requirement already satisfied: tzdata>=2022.7 in ./.venv/lib/python3.10/site-packages (from pandas) (2024.1)
     Requirement already satisfied: six>=1.5 in ./.venv/lib/python3.10/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
+
+
+    
+    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.2.1[0m[39;49m -> [0m[32;49m24.0[0m
+    [1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49mpip install --upgrade pip[0m
+
+
 
 ```python
 import time
@@ -201,15 +247,19 @@ stats = pd.DataFrame(
     )
 ).assign(
     **{
-        "knn:score_err": lambda x: (x["knn:score"].mean() - x["gt"]) / (x["gt"].abs()),
-        "kde:score_err": lambda x: (x["kde:score"].mean() - x["gt"]) / (x["gt"].abs()),
-        "bins:score_err": lambda x: (x["bins:score"].mean() - x["gt"]) / (x["gt"].abs()),
+        "knn:score_err": lambda x: (x["knn:score"] - x["gt"]) / (x["gt"].abs()),
+        "kde:score_err": lambda x: (x["kde:score"] - x["gt"]) / (x["gt"].abs()),
+        "bins:score_err": lambda x: (x["bins:score"] - x["gt"]) / (x["gt"].abs()),
     }
 )
 stats
 ```
 
-    100%|██████████| 175/175 [02:21<00:00,  1.24it/s]
+    100%|██████████| 175/175 [02:14<00:00,  1.30it/s]
+
+
+
+
 
 <div>
 <style scoped>
@@ -224,7 +274,6 @@ stats
     .dataframe thead th {
         text-align: right;
     }
-
 </style>
 <table border="1" class="dataframe">
   <thead>
@@ -258,12 +307,12 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>0.025364</td>
-      <td>0.031412</td>
-      <td>0.613674</td>
-      <td>0.149239</td>
-      <td>0.017937</td>
-      <td>0.028118</td>
+      <td>0.022883</td>
+      <td>0.030864</td>
+      <td>0.596678</td>
+      <td>0.025053</td>
+      <td>0.016849</td>
+      <td>0.027642</td>
       <td>inf</td>
       <td>inf</td>
       <td>inf</td>
@@ -277,12 +326,12 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>0.022774</td>
-      <td>0.025705</td>
-      <td>0.398326</td>
-      <td>0.059105</td>
-      <td>0.024863</td>
-      <td>0.032410</td>
+      <td>0.026454</td>
+      <td>0.027143</td>
+      <td>0.445702</td>
+      <td>0.058006</td>
+      <td>0.019327</td>
+      <td>0.033595</td>
       <td>inf</td>
       <td>inf</td>
       <td>inf</td>
@@ -296,12 +345,12 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>0.016111</td>
-      <td>0.018990</td>
-      <td>0.235503</td>
-      <td>0.427667</td>
-      <td>0.056162</td>
-      <td>0.054341</td>
+      <td>0.015053</td>
+      <td>0.018087</td>
+      <td>0.195344</td>
+      <td>0.381432</td>
+      <td>0.060663</td>
+      <td>0.065576</td>
       <td>inf</td>
       <td>inf</td>
       <td>inf</td>
@@ -315,12 +364,12 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>0.006813</td>
-      <td>0.013945</td>
-      <td>0.111838</td>
-      <td>1.559779</td>
-      <td>0.174541</td>
-      <td>0.146985</td>
+      <td>0.010165</td>
+      <td>0.014075</td>
+      <td>0.126818</td>
+      <td>1.276597</td>
+      <td>0.135854</td>
+      <td>0.121064</td>
       <td>inf</td>
       <td>inf</td>
       <td>inf</td>
@@ -334,12 +383,12 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>0.009105</td>
-      <td>0.009991</td>
-      <td>0.063746</td>
-      <td>5.104303</td>
-      <td>0.363801</td>
-      <td>0.248015</td>
+      <td>0.008126</td>
+      <td>0.010096</td>
+      <td>0.064754</td>
+      <td>4.334968</td>
+      <td>0.382580</td>
+      <td>0.267621</td>
       <td>inf</td>
       <td>inf</td>
       <td>inf</td>
@@ -372,15 +421,15 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>1.965341</td>
-      <td>0.696133</td>
-      <td>1.570958</td>
-      <td>0.408452</td>
-      <td>0.053864</td>
-      <td>0.044614</td>
-      <td>-0.497549</td>
-      <td>-0.736909</td>
-      <td>-0.516856</td>
+      <td>1.972031</td>
+      <td>0.696601</td>
+      <td>1.636130</td>
+      <td>0.368826</td>
+      <td>0.041820</td>
+      <td>0.066362</td>
+      <td>0.006899</td>
+      <td>-0.644322</td>
+      <td>-0.164608</td>
     </tr>
     <tr>
       <th>171</th>
@@ -391,15 +440,15 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>1.982172</td>
-      <td>0.778486</td>
-      <td>1.555785</td>
-      <td>1.459435</td>
-      <td>0.143573</td>
-      <td>0.126090</td>
-      <td>-0.497549</td>
-      <td>-0.736909</td>
-      <td>-0.516856</td>
+      <td>1.969801</td>
+      <td>0.778130</td>
+      <td>1.533357</td>
+      <td>1.438845</td>
+      <td>0.165265</td>
+      <td>0.134893</td>
+      <td>0.005761</td>
+      <td>-0.602695</td>
+      <td>-0.217083</td>
     </tr>
     <tr>
       <th>172</th>
@@ -410,15 +459,15 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>1.981399</td>
-      <td>0.863145</td>
-      <td>1.534130</td>
-      <td>4.882187</td>
-      <td>0.346087</td>
-      <td>0.272118</td>
-      <td>-0.497549</td>
-      <td>-0.736909</td>
-      <td>-0.516856</td>
+      <td>1.981821</td>
+      <td>0.863281</td>
+      <td>1.526962</td>
+      <td>4.356004</td>
+      <td>0.353910</td>
+      <td>0.227436</td>
+      <td>0.011898</td>
+      <td>-0.559217</td>
+      <td>-0.220348</td>
     </tr>
     <tr>
       <th>173</th>
@@ -429,15 +478,15 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>1.972334</td>
-      <td>0.953513</td>
-      <td>1.493871</td>
-      <td>18.187419</td>
-      <td>0.808019</td>
-      <td>0.453766</td>
-      <td>-0.497549</td>
-      <td>-0.736909</td>
-      <td>-0.516856</td>
+      <td>1.974815</td>
+      <td>0.954106</td>
+      <td>1.466835</td>
+      <td>16.546860</td>
+      <td>0.786081</td>
+      <td>0.503119</td>
+      <td>0.008321</td>
+      <td>-0.512843</td>
+      <td>-0.251049</td>
     </tr>
     <tr>
       <th>174</th>
@@ -448,26 +497,31 @@ stats
       <td>1.0</td>
       <td>0</td>
       <td>0</td>
-      <td>1.976281</td>
-      <td>1.036497</td>
-      <td>1.505027</td>
-      <td>58.523867</td>
-      <td>1.043368</td>
-      <td>0.921089</td>
-      <td>-0.497549</td>
-      <td>-0.736909</td>
-      <td>-0.516856</td>
+      <td>1.969898</td>
+      <td>1.035710</td>
+      <td>1.429603</td>
+      <td>56.553517</td>
+      <td>1.309510</td>
+      <td>0.875887</td>
+      <td>0.005810</td>
+      <td>-0.471177</td>
+      <td>-0.270059</td>
     </tr>
   </tbody>
 </table>
 <p>175 rows × 16 columns</p>
 </div>
 
+
+
 # Plot method precision
+
+
 
 ```python
 !pip install seaborn
 ```
+
 
 ```python
 import seaborn as sns
@@ -496,9 +550,15 @@ for i, ax in enumerate(axis):
     ax.set_ylabel(plotsMetadata[i]["y"].split(":")[0] + " - Estimated MI")
 ```
 
+
+    
 ![png](figs/README_19_0.png)
+    
+
 
 # Plot method dependency with the correlation coefficient
+
+
 
 ```python
 stats.groupby("r").agg(
@@ -511,11 +571,54 @@ stats.groupby("r").agg(
 ).plot()
 ```
 
+
+
+
     <Axes: xlabel='r'>
 
+
+
+
+    
 ![png](figs/README_21_1.png)
+    
+
+
+# Plot method dependency with the correlation coefficient
+
+
+
+```python
+stats.where((stats["gt"] > 0) & (stats["n"] == stats["n"].max())).assign(
+    **{"gt:score_err": lambda x: 0}
+).groupby("r").agg(
+    {
+        "knn:score_err": "mean",
+        "kde:score_err": "mean",
+        "bins:score_err": "mean",
+        "gt:score_err": "mean",
+    }
+).plot(
+    ylim=[-0.50, 0.50], ylabel="Relative error"
+)
+```
+
+
+
+
+    <Axes: xlabel='r', ylabel='Relative error'>
+
+
+
+
+    
+![png](figs/README_23_1.png)
+    
+
 
 # Show method durations
+
+
 
 ```python
 stats.groupby("n").agg(
@@ -524,9 +627,23 @@ stats.groupby("n").agg(
         "kde:duration": "mean",
         "bins:duration": "mean",
     }
-).plot()
+).plot(ylabel="Computation duration (s)")
 ```
 
-    <Axes: xlabel='n'>
 
-![png](figs/README_23_1.png)
+
+
+    <Axes: xlabel='n', ylabel='Computation duration (s)'>
+
+
+
+
+    
+![png](figs/README_25_1.png)
+    
+
+
+
+```python
+
+```
