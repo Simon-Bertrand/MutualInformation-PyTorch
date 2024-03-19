@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Literal
+from typing import Collection, List, Optional, Tuple, Literal
 from .db import MutualInformationDensityBased
 import torch
 
@@ -36,23 +36,26 @@ class KdeMutualInformation(MutualInformationDensityBased):
     def __init__(
         self,
         nBins: int,
-        bandwidths: Optional[Tuple[float | int, float | int] | float | int] = None,
+        bandwidths: Optional[Collection[float | int] | float | int] = None,
         normalization: Literal["none", "sum", "joint", "max", "sqrt", "min"] = "none",
+        rangeOpts : dict = {"percentile": 0., "gain": 0.}
     ):
-        super().__init__(nBins=nBins, normalization=normalization)
+        super().__init__(nBins=nBins, normalization=normalization, rangeOpts=rangeOpts)
         if bandwidths is not None:
             if isinstance(bandwidths, (float, int)):
                 bandwidths = 2 * [bandwidths]
             if (
-                not isinstance(bandwidths, [tuple, list])
+                not isinstance(bandwidths, (tuple, list))  # type: ignore
                 or any(bw <= 0 or not isinstance(bw, (float, int)) for bw in bandwidths)
                 or len(bandwidths) != 2
             ):
                 raise ValueError(
                     """Bandwidths must be a strictly positive number\
-or a collection of two strictly positive floats"""
-                )
-        self.bandwidths = bandwidths
+or a collection of two strictly positive floats""")
+            self.bandwidths : Optional[torch.Tensor] = torch.tensor(bandwidths).unsqueeze(0)
+        else:
+            self.bandwidths = None
+            
         self.computeBandwidths = self._computeBandwidths()
 
     def _computeBandwidths(self):
@@ -65,20 +68,21 @@ or a collection of two strictly positive floats"""
 
         def silvermanMethod(x, _):
             # If d=2, Scott and Silverman are equivalent
-            return (x.size(1) ** (-1 / 6)) * x.std()
+            # We modified a bit the Silverman's rule of thumb to smaller bandwidths
+            return (x.size(1) ** (-1 / 3)) * x.std(dim=1)
 
         def userDefinedMethod(_, dim):
-            return self.bandwidths[dim]
+            return self.bandwidths[:, dim]
 
         return silvermanMethod if self.bandwidths is None else userDefinedMethod
 
-    def _computeExpResiduals(self, x: torch.Tensor, h: float):
+    def _computeExpResiduals(self, x: torch.Tensor, h: torch.Tensor):
         """
         Computes the exponential residuals for KDE.
 
         Args:
             x (torch.Tensor): The input tensor (B,N).
-            h (float): The bandwidth.
+            h (torch.Tensor): The bandwidth for each batch (B).
 
         Returns:
             torch.Tensor: The computed exponential residuals (B, N, nBins).
@@ -87,10 +91,10 @@ or a collection of two strictly positive floats"""
             -0.5
             * (
                 (
-                    torch.linspace(*x.aminmax(), self.nBins).unsqueeze(0).unsqueeze(0)
-                    - x.unsqueeze(-1)
+                    self._batchedLinspace(x, self.nBins).unsqueeze(1)  # (B,1,nBins)
+                    - x.unsqueeze(-1)  # (B,N,1)
                 )
-                / h
+                / h.unsqueeze(-1).unsqueeze(-1)  # (B|1,1,1)
             ).pow(2)
         ).exp()
 

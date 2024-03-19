@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Literal
 import torch
+from torch_mi.ranges import PercentileShiftRange
 
 
 class MutualInformationDensityBased(ABC, torch.nn.Module):
@@ -24,6 +25,7 @@ class MutualInformationDensityBased(ABC, torch.nn.Module):
         self,
         nBins: int,
         normalization: Literal["none", "sum", "joint", "max", "sqrt", "min"] = "none",
+        rangeOpts : dict = {"percentile": 0., "gain": 0.}
     ) -> None:
         """
         Initializes a new instance of the MutualInformationDensityBased class.
@@ -43,7 +45,20 @@ class MutualInformationDensityBased(ABC, torch.nn.Module):
         self.nBins = nBins
 
         self.normalization = self._chooseNorm(normalization)
+        
+        if (
+            not isinstance(rangeOpts, dict)
+            or not all([k in rangeOpts for k in ["percentile", "gain"]])
+        ):
+            raise ValueError("""rangeOpts must be a dictionary with at least keys\
+'percentile' and 'gain'""")
+        self.range = PercentileShiftRange(**rangeOpts)
 
+    def _batchedLinspace(self, x, nBins):
+        # X : (B,N) -> (B, nBins)
+        minV, maxV = self.range.computeRange(x)
+        return (torch.arange(nBins) * (maxV - minV) / (nBins - 1) + minV)
+    
     @abstractmethod
     def computePxy(self, x, y):
         """

@@ -18,19 +18,15 @@ These methods can be used to measure the amount of information shared between tw
 - [KDE] "Estimation of Mutual Information Using Kernel Density Estimators", Moon, Young-Il & Rajagopalan, Balaji & Lall, Upmanu - https://www.researchgate.net/publication/13324976_Estimation_of_Mutual_Information_Using_Kernel_Density_Estimators
 
 
-# Fix
-
-Need to fix the ranges in DB estimations. When N and nRealizations increases, the linspace range becomes wider, which deteriorates the Pxy estimation.
-Aminmax should be used in a batched fashion => Having one linspace for each batch and we will use (q,1-q) percentiles range. Bins std in bandwidth method should also be batched.
-
-
 # Install library
 
 
 
 ```bash
 %%bash
-pip install https://github.com/Simon-Bertrand/MutualInformation-PyTorch/archive/main.zip
+if !python -c "import torch_mi" 2>/dev/null; then
+    pip install https://github.com/Simon-Bertrand/MutualInformation-PyTorch/archive/main.zip
+fi
 ```
 
 # Import library
@@ -49,6 +45,19 @@ import torch_mi
 %%bash
 pip install matplotlib
 ```
+
+    Requirement already satisfied: matplotlib in ./.venv/lib/python3.10/site-packages (3.8.3)
+    Requirement already satisfied: python-dateutil>=2.7 in ./.venv/lib/python3.10/site-packages (from matplotlib) (2.9.0.post0)
+    Requirement already satisfied: packaging>=20.0 in ./.venv/lib/python3.10/site-packages (from matplotlib) (24.0)
+    Requirement already satisfied: pyparsing>=2.3.1 in ./.venv/lib/python3.10/site-packages (from matplotlib) (3.1.2)
+    Requirement already satisfied: pillow>=8 in ./.venv/lib/python3.10/site-packages (from matplotlib) (10.2.0)
+    Requirement already satisfied: cycler>=0.10 in ./.venv/lib/python3.10/site-packages (from matplotlib) (0.12.1)
+    Requirement already satisfied: numpy<2,>=1.21 in ./.venv/lib/python3.10/site-packages (from matplotlib) (1.26.4)
+    Requirement already satisfied: contourpy>=1.0.1 in ./.venv/lib/python3.10/site-packages (from matplotlib) (1.2.0)
+    Requirement already satisfied: fonttools>=4.22.0 in ./.venv/lib/python3.10/site-packages (from matplotlib) (4.50.0)
+    Requirement already satisfied: kiwisolver>=1.3.1 in ./.venv/lib/python3.10/site-packages (from matplotlib) (1.4.5)
+    Requirement already satisfied: six>=1.5 in ./.venv/lib/python3.10/site-packages (from python-dateutil>=2.7->matplotlib) (1.16.0)
+
 
 
 ```python
@@ -99,9 +108,14 @@ x, y = getMultivariateNormal(covMat, *means).sample((B, C, H, W)).moveaxis(-1, 0
 print("Ground truth MI:", miGroundTruth(covMat))
 
 # Instanciate four methods
-binsMiSoft = torch_mi.BinsCountMutualInformation(nBins=nBins, mode="soft")  # Default mode
-binsMiDiscrete = torch_mi.BinsCountMutualInformation(nBins=nBins, mode="discrete")
-kdeMi = torch_mi.KdeMutualInformation(nBins=nBins)
+rangeOpts = dict(percentile=0.001, gain=0)
+binsMiSoft = torch_mi.BinsCountMutualInformation(
+    nBins=nBins, mode="soft", rangeOpts=rangeOpts
+)  # Default mode
+binsMiDiscrete = torch_mi.BinsCountMutualInformation(
+    nBins=nBins, mode="discrete", rangeOpts=rangeOpts
+)
+kdeMi = torch_mi.KdeMutualInformation(nBins=nBins, rangeOpts=rangeOpts)
 knnMi = torch_mi.KnnMutualInformation(nNeighbours=nNeighbours)
 
 BC, HW = x.size(0) * x.size(1), x.size(2) * x.size(3)
@@ -124,13 +138,13 @@ axes[2].imshow(binsMiDiscrete.computePxy(x.view(BC, HW), y.view(BC, HW))[0])
 
 
 
-    <matplotlib.image.AxesImage at 0x7fac58b26140>
+    <matplotlib.image.AxesImage at 0x7f3d8341dc60>
 
 
 
 
     
-![png](figs/README_12_1.png)
+![png](figs/README_11_1.png)
     
 
 
@@ -148,6 +162,17 @@ dict(
 )
 ```
 
+
+
+
+    {'binsMiSoft': 1.7509595155715942,
+     'binsMiDiscrete': 1.7509595155715942,
+     'kdeMi': 1.6319304704666138,
+     'knnMi': 2.012399673461914,
+     'gt': 1.9585186697929657}
+
+
+
 # Compute some stats
 
 
@@ -156,6 +181,15 @@ dict(
 %%bash
 pip install tqdm pandas
 ```
+
+    Requirement already satisfied: tqdm in ./.venv/lib/python3.10/site-packages (4.66.2)
+    Requirement already satisfied: pandas in ./.venv/lib/python3.10/site-packages (2.2.1)
+    Requirement already satisfied: pytz>=2020.1 in ./.venv/lib/python3.10/site-packages (from pandas) (2024.1)
+    Requirement already satisfied: tzdata>=2022.7 in ./.venv/lib/python3.10/site-packages (from pandas) (2024.1)
+    Requirement already satisfied: python-dateutil>=2.8.2 in ./.venv/lib/python3.10/site-packages (from pandas) (2.9.0.post0)
+    Requirement already satisfied: numpy<2,>=1.22.4 in ./.venv/lib/python3.10/site-packages (from pandas) (1.26.4)
+    Requirement already satisfied: six>=1.5 in ./.venv/lib/python3.10/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
+
 
 
 ```python
@@ -218,6 +252,265 @@ stats = pd.DataFrame(
 stats
 ```
 
+    100%|██████████| 175/175 [04:38<00:00,  1.59s/it]
+
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>n</th>
+      <th>r</th>
+      <th>gt</th>
+      <th>varX</th>
+      <th>varY</th>
+      <th>meanX</th>
+      <th>meanY</th>
+      <th>knn:score</th>
+      <th>kde:score</th>
+      <th>bins:score</th>
+      <th>knn:duration</th>
+      <th>kde:duration</th>
+      <th>bins:duration</th>
+      <th>knn:score_err</th>
+      <th>kde:score_err</th>
+      <th>bins:score_err</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>100.0</td>
+      <td>0.00</td>
+      <td>-0.000000</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0.026470</td>
+      <td>0.148049</td>
+      <td>1.014754</td>
+      <td>0.050105</td>
+      <td>3.156796</td>
+      <td>0.040006</td>
+      <td>inf</td>
+      <td>inf</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>169.0</td>
+      <td>0.00</td>
+      <td>-0.000000</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0.022425</td>
+      <td>0.141168</td>
+      <td>0.708642</td>
+      <td>0.156231</td>
+      <td>0.055358</td>
+      <td>0.057723</td>
+      <td>inf</td>
+      <td>inf</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>361.0</td>
+      <td>0.00</td>
+      <td>-0.000000</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0.021176</td>
+      <td>0.125674</td>
+      <td>0.390564</td>
+      <td>0.720613</td>
+      <td>0.091217</td>
+      <td>0.136267</td>
+      <td>inf</td>
+      <td>inf</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>676.0</td>
+      <td>0.00</td>
+      <td>-0.000000</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0.012514</td>
+      <td>0.114282</td>
+      <td>0.224953</td>
+      <td>2.707399</td>
+      <td>0.122227</td>
+      <td>0.232339</td>
+      <td>inf</td>
+      <td>inf</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1296.0</td>
+      <td>0.00</td>
+      <td>-0.000000</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0.007499</td>
+      <td>0.099844</td>
+      <td>0.126344</td>
+      <td>9.110626</td>
+      <td>0.205077</td>
+      <td>0.407144</td>
+      <td>inf</td>
+      <td>inf</td>
+      <td>inf</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>170</th>
+      <td>361.0</td>
+      <td>0.99</td>
+      <td>1.958519</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.969638</td>
+      <td>1.413813</td>
+      <td>1.725812</td>
+      <td>0.684023</td>
+      <td>0.090662</td>
+      <td>0.134714</td>
+      <td>0.005677</td>
+      <td>-0.278122</td>
+      <td>-0.118818</td>
+    </tr>
+    <tr>
+      <th>171</th>
+      <td>676.0</td>
+      <td>0.99</td>
+      <td>1.958519</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.984936</td>
+      <td>1.547285</td>
+      <td>1.703919</td>
+      <td>2.352342</td>
+      <td>0.116680</td>
+      <td>0.221536</td>
+      <td>0.013489</td>
+      <td>-0.209972</td>
+      <td>-0.129996</td>
+    </tr>
+    <tr>
+      <th>172</th>
+      <td>1296.0</td>
+      <td>0.99</td>
+      <td>1.958519</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.982244</td>
+      <td>1.662663</td>
+      <td>1.687847</td>
+      <td>8.944150</td>
+      <td>0.199590</td>
+      <td>0.426222</td>
+      <td>0.012114</td>
+      <td>-0.151061</td>
+      <td>-0.138202</td>
+    </tr>
+    <tr>
+      <th>173</th>
+      <td>2601.0</td>
+      <td>0.99</td>
+      <td>1.958519</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.973207</td>
+      <td>1.761444</td>
+      <td>1.677549</td>
+      <td>35.705552</td>
+      <td>0.423536</td>
+      <td>0.783280</td>
+      <td>0.007499</td>
+      <td>-0.100624</td>
+      <td>-0.143460</td>
+    </tr>
+    <tr>
+      <th>174</th>
+      <td>4900.0</td>
+      <td>0.99</td>
+      <td>1.958519</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.971526</td>
+      <td>1.837464</td>
+      <td>1.667954</td>
+      <td>120.865054</td>
+      <td>0.690170</td>
+      <td>1.431398</td>
+      <td>0.006641</td>
+      <td>-0.061809</td>
+      <td>-0.148360</td>
+    </tr>
+  </tbody>
+</table>
+<p>175 rows × 16 columns</p>
+</div>
+
+
+
 # Plot method precision
 
 
@@ -225,6 +518,23 @@ stats
 ```python
 !pip install seaborn
 ```
+
+    Requirement already satisfied: seaborn in ./.venv/lib/python3.10/site-packages (0.13.2)
+    Requirement already satisfied: matplotlib!=3.6.1,>=3.4 in ./.venv/lib/python3.10/site-packages (from seaborn) (3.8.3)
+    Requirement already satisfied: numpy!=1.24.0,>=1.20 in ./.venv/lib/python3.10/site-packages (from seaborn) (1.26.4)
+    Requirement already satisfied: pandas>=1.2 in ./.venv/lib/python3.10/site-packages (from seaborn) (2.2.1)
+    Requirement already satisfied: packaging>=20.0 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (24.0)
+    Requirement already satisfied: pillow>=8 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (10.2.0)
+    Requirement already satisfied: contourpy>=1.0.1 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (1.2.0)
+    Requirement already satisfied: pyparsing>=2.3.1 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (3.1.2)
+    Requirement already satisfied: fonttools>=4.22.0 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (4.50.0)
+    Requirement already satisfied: cycler>=0.10 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (0.12.1)
+    Requirement already satisfied: python-dateutil>=2.7 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (2.9.0.post0)
+    Requirement already satisfied: kiwisolver>=1.3.1 in ./.venv/lib/python3.10/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn) (1.4.5)
+    Requirement already satisfied: tzdata>=2022.7 in ./.venv/lib/python3.10/site-packages (from pandas>=1.2->seaborn) (2024.1)
+    Requirement already satisfied: pytz>=2020.1 in ./.venv/lib/python3.10/site-packages (from pandas>=1.2->seaborn) (2024.1)
+    Requirement already satisfied: six>=1.5 in ./.venv/lib/python3.10/site-packages (from python-dateutil>=2.7->matplotlib!=3.6.1,>=3.4->seaborn) (1.16.0)
+
 
 
 ```python
@@ -254,6 +564,12 @@ for i, ax in enumerate(axis):
     ax.set_ylabel(plotsMetadata[i]["y"].split(":")[0] + " - Estimated MI")
 ```
 
+
+    
+![png](figs/README_19_0.png)
+    
+
+
 # Plot method dependency with the correlation coefficient
 
 
@@ -268,6 +584,19 @@ stats.groupby("r").agg(
     }
 ).plot()
 ```
+
+
+
+
+    <Axes: xlabel='r'>
+
+
+
+
+    
+![png](figs/README_21_1.png)
+    
+
 
 # Plot method dependency with the correlation coefficient
 
@@ -288,6 +617,19 @@ stats.where((stats["gt"] > 0) & (stats["n"] == stats["n"].max())).assign(
 )
 ```
 
+
+
+
+    <Axes: xlabel='r', ylabel='Relative error'>
+
+
+
+
+    
+![png](figs/README_23_1.png)
+    
+
+
 # Show method durations
 
 
@@ -301,6 +643,19 @@ stats.groupby("n").agg(
     }
 ).plot(ylabel="Computation duration (s)")
 ```
+
+
+
+
+    <Axes: xlabel='n', ylabel='Computation duration (s)'>
+
+
+
+
+    
+![png](figs/README_25_1.png)
+    
+
 
 
 ```python

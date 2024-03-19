@@ -30,21 +30,28 @@ class PercentileShiftRange:
         """
         if percentile < 0 or percentile > 1:
             raise ValueError("Percentile must be in the range [0, 1]")
-        self.percentile = percentile
+        self.percentile = float(percentile)
         if gain < 0 or gain > 1:
             raise ValueError("Shift must be in the range [0, 1]")
-        self.gain = gain
+        self.gain = float(gain)
 
     def computeRange(self, x):
         """
         Computes the range of the input tensor.
 
         Args:
-            x (torch.Tensor): The input tensor.
+            x (torch.Tensor): The input tensor (B,N).
 
         Returns:
-            Tuple[torch.Tensor]: A tuple containing the lower and upper bounds of the range.
+            Tuple[torch.Tensor]: A tensors' tuple ((B,1), (B,1)) containing the lower and upper    
+            bounds of the range.
 
         """
-        lowerB, upperB = torch.quantile(x, [self.percentile, 1 - self.percentile])
+        lowerB, upperB = x.quantile(
+            torch.tensor(
+                [self.percentile, 1 - self.percentile]
+            ),
+            dim=1,
+            keepdim=True
+        )
         return lowerB - self.gain * lowerB.abs(), upperB + self.gain * upperB.abs()
