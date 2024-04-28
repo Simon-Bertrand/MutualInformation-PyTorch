@@ -47,7 +47,7 @@ class KnnMutualInformation(torch.nn.Module):
         """
         assert x.shape == y.shape, "Tensor x and y must have the same shape"
         BC, HW = x.size(0) * x.size(1), x.size(2) * x.size(3)
-        zNormXy = torch.cdist(*2 * [torch.stack([d.view(BC, HW, 1) for d in (x, y)])], p=1)
+        zNormXy = torch.cdist(*2 * [torch.stack([d.reshape(BC, HW, 1) for d in (x, y)])], p=1)
         # We can't use p=torch.inf as we need individually the distances for each dimension
         eps = (
             zNormXy.max(dim=0)
